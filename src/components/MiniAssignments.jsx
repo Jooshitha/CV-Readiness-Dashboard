@@ -63,7 +63,7 @@ export default function MiniAssignments({ gaps }) {
               </button>
               {submittedIndexes[index] && (
                 <div className="mt-2 text-green-600 font-medium">
-                  Feedback: File received! We’ll review your submission shortly.
+                  ✅ Feedback: File received! We’ll review your submission shortly.
                 </div>
               )}
             </div>
