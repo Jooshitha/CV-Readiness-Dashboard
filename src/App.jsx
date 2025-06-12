@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './index.css';
 import InputForm from './components/InputForm';
+import SkillGaps from './components/SkillGaps';
+import MiniAssignments from './components/MiniAssignments';
 
 export default function App() {
   const [cvText, setCvText] = useState('');
@@ -11,64 +13,59 @@ export default function App() {
   const [error, setError] = useState(null);
 
   const callGeminiAPI = async (prompt) => {
-  const apiKey = 'AIzaSyCLLlS4TTSsDnkMY3hV40PjN51u7SXMOyQ';
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-  const payload = { contents: [{ role: 'user', parts: [{ text: prompt }] }] };
+    const apiKey = 'AIzaSyCLLlS4TTSsDnkMY3hV40PjN51u7SXMOyQ';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const payload = { contents: [{ role: 'user', parts: [{ text: prompt }] }] };
 
-  try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json();
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      console.log("Raw API Response:", JSON.stringify(data, null, 2));
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Invalid response';
+    } catch (err) {
+      console.error(err);
+      return `Error calling API: ${err.message}`;
+    }
+  };
 
-    // Log the entire response to debug
-    console.log("Raw API Response:", JSON.stringify(data, null, 2));
+  const downloadOptimizedCV = () => {
+    if (!result) {
+      alert("No result available.");
+      return;
+    }
 
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Invalid response';
-  } catch (err) {
-    console.error(err);
-    return `Error calling API: ${err.message}`;
-  }
-};
+    const startMarker = "Optimized CV Text:";
+    const endMarker = "Optimized CV Match Score:";
 
-const downloadOptimizedCV = () => {
-  if (!result) {
-    alert("No result available.");
-    return;
-  }
+    const startIndex = result.indexOf(startMarker);
+    const endIndex = result.indexOf(endMarker);
 
-  // Attempt to extract the Optimized CV block using regex
-  const startMarker = "Optimized CV Text:";
-  const endMarker = "Optimized CV Match Score:";
+    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+      alert("Optimized CV not found in the response.");
+      return;
+    }
 
-  const startIndex = result.indexOf(startMarker);
-  const endIndex = result.indexOf(endMarker);
+    const optimizedCV = result
+      .substring(startIndex + startMarker.length, endIndex)
+      .trim();
 
-  if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-    alert("Optimized CV not found in the response.");
-    return;
-  }
+    if (!optimizedCV) {
+      alert("Optimized CV not found in the response.");
+      return;
+    }
 
-  const optimizedCV = result
-    .substring(startIndex + startMarker.length, endIndex)
-    .trim();
-
-  if (!optimizedCV) {
-    alert("Optimized CV not found in the response.");
-    return;
-  }
-
-  const blob = new Blob([optimizedCV], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "Optimized_CV.txt";
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
+    const blob = new Blob([optimizedCV], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Optimized_CV.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleMatchAndScore = async () => {
     setLoading(true);
@@ -105,7 +102,6 @@ const downloadOptimizedCV = () => {
 
       {error && <p className="text-red-600 mt-4 text-center">{error}</p>}
 
-      {/* RESULTS DISPLAY INLINE */}
       {result && (
         <div className="mt-10 bg-white shadow-lg rounded-lg p-6 transition duration-300 ease-in-out">
           <h2 className="text-xl font-semibold mb-3 text-blue-700">CV Match Analysis</h2>
@@ -116,23 +112,19 @@ const downloadOptimizedCV = () => {
       )}
 
       {result && (
-  <div className="text-center mt-4">
-    <button
-      onClick={downloadOptimizedCV}
-      className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
-    >
-      Download Optimized CV
-    </button>
-  </div>
-)}
-
+        <div className="text-center mt-4">
+          <button
+            onClick={downloadOptimizedCV}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+          >
+            Download Optimized CV
+          </button>
+        </div>
+      )}
 
       {gaps && (
-        <div className="mt-8 bg-white shadow-lg rounded-lg p-6 transition duration-300 ease-in-out">
-          <h2 className="text-xl font-semibold mb-3 text-blue-700">Skill Gap Analysis</h2>
-          <pre className="whitespace-pre-wrap text-gray-700 bg-gray-50 p-4 rounded-md border border-gray-200 overflow-x-auto text-sm">
-            {gaps}
-          </pre>
+        <div className="mt-10">
+          <MiniAssignments gaps={gaps} />
         </div>
       )}
     </div>
