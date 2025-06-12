@@ -6,7 +6,7 @@ A React-based web application that analyzes a candidate’s resume against a job
 
 ## 🚀 Live Demo
 
-👉 [Click Here to View the Live App](https://your-deployment-link.vercel.app)  
+👉 [Click Here to View the Live App](https://cv-readiness-dashboard-git-main-jooshithas-projects.vercel.app/)  
 _Replace with your actual deployed link_
 
 ---
